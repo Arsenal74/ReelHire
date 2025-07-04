@@ -1,0 +1,204 @@
+# 📘 Recruiter Dashboard (React + Next.js)
+
+---
+
+## 📌 Overview
+Build a recruiter-facing dashboard for async interviews that includes:
+- **Job Description Form**
+- **Interview Question Input**
+- **Candidate Results Display**
+- [Optional] AI scoring pipeline (OpenAI/GPT-4o)
+
+---
+
+## 🧱 Project Structure
+```
+/pages
+  └─ index.tsx             → Main dashboard
+  └─ api/
+      └─ score.ts          → Mock API for scoring candidates
+/components
+  └─ JobDescriptionForm.tsx
+  └─ QuestionInputForm.tsx
+  └─ ResultsDisplay.tsx
+/styles
+  └─ globals.css
+/utils
+  └─ api.ts                → (Optional) API helper
+```
+
+---
+
+## 🧩 Components
+
+### ✅ `JobDescriptionForm.tsx`
+```tsx
+import { useState } from 'react';
+
+export default function JobDescriptionForm({ onSubmit }: { onSubmit: (desc: string) => void }) {
+  const [jobDescription, setJobDescription] = useState('');
+
+  return (
+    <div className="mb-6">
+      <h2 className="font-semibold text-lg mb-2">Job Description</h2>
+      <textarea
+        value={jobDescription}
+        onChange={(e) => setJobDescription(e.target.value)}
+        className="w-full p-3 border rounded"
+        rows={5}
+        placeholder="Paste job description here..."
+      />
+      <button
+        onClick={() => onSubmit(jobDescription)}
+        className="mt-2 bg-blue-600 text-white px-4 py-2 rounded"
+      >
+        Save Job Description
+      </button>
+    </div>
+  );
+}
+```
+
+---
+
+### ✅ `QuestionInputForm.tsx`
+```tsx
+import { useState } from 'react';
+
+export default function QuestionInputForm({ onSubmit }: { onSubmit: (qs: string[]) => void }) {
+  const [questions, setQuestions] = useState<string[]>(['']);
+
+  const updateQuestion = (idx: number, value: string) => {
+    const updated = [...questions];
+    updated[idx] = value;
+    setQuestions(updated);
+  };
+
+  const addQuestion = () => setQuestions([...questions, '']);
+
+  return (
+    <div className="mb-6">
+      <h2 className="font-semibold text-lg mb-2">Interview Questions</h2>
+      {questions.map((q, idx) => (
+        <input
+          key={idx}
+          type="text"
+          value={q}
+          onChange={(e) => updateQuestion(idx, e.target.value)}
+          className="w-full p-2 mb-2 border rounded"
+          placeholder={`Question ${idx + 1}`}
+        />
+      ))}
+      <div className="flex gap-2">
+        <button onClick={addQuestion} className="bg-gray-200 px-3 py-1 rounded">Add Question</button>
+        <button onClick={() => onSubmit(questions)} className="bg-green-600 text-white px-4 py-2 rounded">
+          Save Questions
+        </button>
+      </div>
+    </div>
+  );
+}
+```
+
+---
+
+### ✅ `ResultsDisplay.tsx`
+```tsx
+export default function ResultsDisplay({ results }: { results: { name: string; score: number; summary: string }[] }) {
+  return (
+    <div className="mt-6">
+      <h2 className="font-semibold text-lg mb-2">Candidate Results</h2>
+      {results.map((r, idx) => (
+        <div key={idx} className="border p-4 mb-4 rounded">
+          <div className="font-semibold">{r.name}</div>
+          <div>Score: {r.score}%</div>
+          <div className="text-sm mt-1 text-gray-600">{r.summary}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+```
+
+---
+
+## 📄 `pages/index.tsx`
+```tsx
+import { useState } from 'react';
+import JobDescriptionForm from '../components/JobDescriptionForm';
+import QuestionInputForm from '../components/QuestionInputForm';
+import ResultsDisplay from '../components/ResultsDisplay';
+
+export default function Home() {
+  const [jobDesc, setJobDesc] = useState('');
+  const [questions, setQuestions] = useState<string[]>([]);
+  const [results, setResults] = useState<any[]>([]);
+
+  const handleMockScoring = () => {
+    setResults([
+      { name: 'Alice Johnson', score: 85, summary: 'Strong alignment with role and clear answers.' },
+      { name: 'Bob Smith', score: 68, summary: 'Relevant experience but vague responses.' },
+    ]);
+  };
+
+  return (
+    <div className="max-w-3xl mx-auto p-6">
+      <h1 className="text-2xl font-bold mb-6">Recruiter Dashboard</h1>
+      <JobDescriptionForm onSubmit={(desc) => setJobDesc(desc)} />
+      <QuestionInputForm onSubmit={(qs) => setQuestions(qs)} />
+      <button
+        onClick={handleMockScoring}
+        className="bg-purple-700 text-white px-6 py-2 rounded mt-4"
+      >
+        Run AI Scoring (Mock)
+      </button>
+      <ResultsDisplay results={results} />
+    </div>
+  );
+}
+```
+
+---
+
+## 🔧 API Endpoint (optional): `pages/api/score.ts`
+```ts
+export default async function handler(req, res) {
+  const { jobDescription, answers } = req.body;
+
+  // AI scoring logic or mocked version
+  const scores = answers.map((a: any) => ({
+    name: a.name,
+    score: Math.floor(Math.random() * 40 + 60),
+    summary: 'Simulated analysis...',
+  }));
+
+  res.status(200).json({ results: scores });
+}
+```
+
+---
+
+## 🌈 Tailwind Setup (optional)
+```bash
+npm install -D tailwindcss postcss autoprefixer
+npx tailwindcss init -p
+```
+In `tailwind.config.js`:
+```js
+content: ["./pages/**/*.{js,ts,jsx,tsx}", "./components/**/*.{js,ts,jsx,tsx}"],
+```
+In `globals.css`:
+```css
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+```
+
+---
+
+## 🧠 Next Enhancements
+- Add Supabase or Firebase for backend storage
+- Enable candidate transcript or audio upload
+- Integrate GPT-4 scoring via OpenAI API
+- Add login/auth (NextAuth.js)
+- Save sessions per recruiter
